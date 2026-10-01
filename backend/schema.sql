@@ -87,6 +87,6 @@ CREATE TABLE purchase_orders (
 CREATE TABLE manufacturing_jobs (
     id SERIAL PRIMARY KEY,
     sales_order_id INT NOT NULL REFERENCES sales_orders(id) ON DELETE CASCADE,
-    status VARCHAR(50) NOT NULL DEFAULT 'queued' CHECK (status IN ('queued', 'in_progress', 'done', 'cancelled')),
+    status VARCHAR(50) NOT NULL DEFAULT 'queued' CHECK (status IN ('queued', 'in_progress', 'qc', 'done', 'cancelled')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

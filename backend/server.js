@@ -13,10 +13,10 @@ const reportsRoutes = require('./routes/reports');
 const usersRoutes = require('./routes/users');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 
 // 1. CORS Configuration
-const frontendOrigin = process.env.FRONTEND_URL || 'http://localhost:5173';
+const frontendOrigin = process.env.FRONTEND_ORIGIN || process.env.FRONTEND_URL || 'http://localhost:5173';
 app.use(cors({
   origin: frontendOrigin,
   credentials: true,
@@ -35,7 +35,7 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     httpOnly: true, // Prevent client-side JS access to cookie
-    secure: process.env.NODE_ENV === 'production', // Secure in production (HTTPS)
+    secure: process.env.NODE_ENV === 'production', // Secure in production (HTTPS) only; MUST be false for local HTTP
     sameSite: 'lax',
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }

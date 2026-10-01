@@ -7,7 +7,11 @@ const requirePermission = require('../middleware/requirePermission');
 /**
  * GET /api/reports/summary
  * requirePermission('reports', 'view')
- * 200: { ordersByStage: <GROUP BY stage count>, totalRevenue: <SUM(total_value) WHERE stage='delivered'>, topCustomers: <top 5 by SUM(total_value) GROUP BY customer_name> }
+ * 200: {
+ *   ordersByStage: { demand: n, procurement: n, production: n, qc: n, delivered: n, cancelled: n },
+ *   totalRevenue: number,
+ *   topCustomers: [{ customer_name, total_value }]
+ * }
  */
 router.get('/summary', requireAuth, requirePermission('reports', 'view'), async (req, res) => {
   try {
@@ -19,6 +23,20 @@ router.get('/summary', requireAuth, requirePermission('reports', 'view'), async 
       ORDER BY count DESC
     `;
     const ordersByStageResult = await db.query(ordersByStageQuery);
+    
+    // Convert array to object map per API contract spec
+    const ordersByStage = {
+      demand: 0,
+      procurement: 0,
+      production: 0,
+      qc: 0,
+      delivered: 0,
+      on_hold: 0,
+      cancelled: 0,
+    };
+    ordersByStageResult.rows.forEach((row) => {
+      ordersByStage[row.stage] = parseInt(row.count, 10);
+    });
 
     // 2. Total revenue for delivered orders
     const totalRevenueQuery = `
@@ -31,20 +49,20 @@ router.get('/summary', requireAuth, requirePermission('reports', 'view'), async 
 
     // 3. Top 5 customers by SUM(total_value)
     const topCustomersQuery = `
-      SELECT customer_name, SUM(total_value)::numeric AS total_spent
+      SELECT customer_name, SUM(total_value)::numeric AS total_value
       FROM sales_orders
       GROUP BY customer_name
-      ORDER BY total_spent DESC
+      ORDER BY total_value DESC
       LIMIT 5
     `;
     const topCustomersResult = await db.query(topCustomersQuery);
     const topCustomers = topCustomersResult.rows.map(row => ({
       customer_name: row.customer_name,
-      total_spent: parseFloat(row.total_spent || 0)
+      total_value: parseFloat(row.total_value || 0)
     }));
 
     return res.status(200).json({
-      ordersByStage: ordersByStageResult.rows,
+      ordersByStage,
       totalRevenue,
       topCustomers
     });

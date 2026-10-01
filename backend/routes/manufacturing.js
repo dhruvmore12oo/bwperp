@@ -4,7 +4,7 @@ const db = require('../db');
 const requireAuth = require('../middleware/requireAuth');
 const requirePermission = require('../middleware/requirePermission');
 
-const VALID_STATUSES = ['queued', 'in_progress', 'done', 'cancelled'];
+const VALID_STATUSES = ['queued', 'in_progress', 'qc', 'done', 'cancelled'];
 
 /**
  * GET /api/manufacturing-jobs
@@ -19,6 +19,7 @@ router.get('/', requireAuth, requirePermission('manufacturing', 'view'), async (
         mj.sales_order_id,
         mj.status,
         mj.created_at,
+        mj.created_at AS updated_at,
         so.order_code,
         so.customer_name
       FROM manufacturing_jobs mj

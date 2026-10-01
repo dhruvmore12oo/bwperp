@@ -19,6 +19,7 @@ router.get('/', requireAuth, requirePermission('inventory', 'view'), async (req,
         quantity_on_hand, 
         reorder_point, 
         unit_price, 
+        'units' AS unit,
         created_at,
         (quantity_on_hand <= reorder_point) AS low_stock
       FROM inventory_items
@@ -51,7 +52,7 @@ router.patch('/:id', requireAuth, requirePermission('inventory', 'edit'), async 
       UPDATE inventory_items
       SET quantity_on_hand = $1
       WHERE id = $2
-      RETURNING id, sku, name, quantity_on_hand, reorder_point, unit_price, created_at,
+      RETURNING id, sku, name, quantity_on_hand, reorder_point, unit_price, 'units' AS unit, created_at,
                 (quantity_on_hand <= reorder_point) AS low_stock
     `;
     const result = await db.query(updateQuery, [quantity_on_hand, id]);
