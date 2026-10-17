@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
@@ -126,6 +126,13 @@ export function LoginPage() {
             >
               {submitting ? 'Authenticating...' : 'Sign In to Portal'}
             </button>
+
+            <div style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.84rem' }}>
+              <span style={{ color: 'var(--slate)' }}>New to Flowline ERP? </span>
+              <Link to="/signup" style={{ color: 'var(--teal)', fontWeight: '600', textDecoration: 'none' }}>
+                Create an Account &rarr;
+              </Link>
+            </div>
           </form>
 
           {/* Academic Prototype Notice with Credentials Info */}

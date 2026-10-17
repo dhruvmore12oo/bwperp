@@ -7,6 +7,7 @@ import { ProtectedRoute } from './components/common/ProtectedRoute';
 
 // Module Pages
 import { LoginPage } from './pages/LoginPage';
+import { SignUpPage } from './pages/SignUpPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { SalesOrdersPage } from './pages/SalesOrdersPage';
 import { PurchaseOrdersPage } from './pages/PurchaseOrdersPage';
@@ -21,8 +22,10 @@ export function App() {
       <ToastProvider>
         <AuthProvider>
           <Routes>
-            {/* Public Login Route */}
+            {/* Public Authentication Routes */}
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignUpPage />} />
+            <Route path="/register" element={<SignUpPage />} />
 
             {/* Authenticated Application Shell */}
             <Route

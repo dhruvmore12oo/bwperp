@@ -86,6 +86,13 @@ export function login(email, password) {
   });
 }
 
+export function register(userData) {
+  return apiRequest('/auth/register', {
+    method: 'POST',
+    body: userData,
+  });
+}
+
 export function logout() {
   return apiRequest('/auth/logout', {
     method: 'POST',

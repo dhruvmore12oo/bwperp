@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { getCurrentUser, login as apiLogin, logout as apiLogout } from '../services/api';
+import { getCurrentUser, login as apiLogin, logout as apiLogout, register as apiRegister } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -48,6 +48,16 @@ export function AuthProvider({ children }) {
     throw new Error('Invalid response structure from login endpoint');
   };
 
+  // Register / Sign-up handler
+  const register = async (userData) => {
+    const response = await apiRegister(userData);
+    if (response && response.user) {
+      setUser(response.user);
+      return response.user;
+    }
+    throw new Error('Invalid response structure from registration endpoint');
+  };
+
   // Logout handler
   const logout = async () => {
     try {
@@ -67,6 +77,7 @@ export function AuthProvider({ children }) {
     isManager: user?.role === 'manager' || user?.role === 'admin',
     isStaff: user?.role === 'staff',
     login,
+    register,
     logout,
     refreshUser: checkAuth,
   };

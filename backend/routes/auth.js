@@ -67,6 +67,89 @@ router.post('/login', async (req, res) => {
 });
 
 /**
+ * POST /api/auth/register (and alias /signup)
+ * Creates a new user account, associates the chosen role,
+ * and establishes a session for immediate login.
+ */
+const handleRegister = async (req, res) => {
+  try {
+    const { name, email, password, role } = req.body;
+
+    if (!name || !email || !password || !role) {
+      return res.status(400).json({ error: "Name, email, password, and role are required" });
+    }
+
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedRole = String(role).trim().toLowerCase();
+
+    // Validate that role is one of the three database roles
+    if (!['admin', 'manager', 'staff'].includes(trimmedRole)) {
+      return res.status(400).json({ error: "Role must be 'admin', 'manager', or 'staff'" });
+    }
+
+    // Check if email already exists
+    const checkQuery = `SELECT id FROM users WHERE LOWER(email) = $1`;
+    const checkResult = await db.query(checkQuery, [trimmedEmail]);
+    if (checkResult.rows.length > 0) {
+      return res.status(400).json({ error: "An account with this email address already exists" });
+    }
+
+    // Fetch corresponding role_id from database
+    const roleQuery = `SELECT id, name FROM roles WHERE LOWER(name) = $1`;
+    const roleResult = await db.query(roleQuery, [trimmedRole]);
+    if (roleResult.rows.length === 0) {
+      return res.status(400).json({ error: "Specified role does not exist in database" });
+    }
+    const roleId = roleResult.rows[0].id;
+
+    // Hash password with bcrypt salt rounds = 10
+    const password_hash = await bcrypt.hash(password, 10);
+
+    // Insert user record with active status
+    const insertUserQuery = `
+      INSERT INTO users (name, email, password_hash, role_id, is_active)
+      VALUES ($1, $2, $3, $4, true)
+      RETURNING id, name, email, is_active, created_at
+    `;
+    const insertResult = await db.query(insertUserQuery, [
+      name.trim(),
+      trimmedEmail,
+      password_hash,
+      roleId
+    ]);
+
+    const createdUser = insertResult.rows[0];
+
+    // Auto-login newly registered user by creating session
+    req.session.user = {
+      id: createdUser.id,
+      name: createdUser.name,
+      email: createdUser.email,
+      role: trimmedRole
+    };
+
+    return res.status(201).json({
+      user: {
+        id: createdUser.id,
+        name: createdUser.name,
+        email: createdUser.email,
+        role: trimmedRole
+      },
+      message: "Account registered successfully"
+    });
+  } catch (err) {
+    console.error('Registration error:', err);
+    if (err.code === '23505') {
+      return res.status(400).json({ error: "An account with this email address already exists" });
+    }
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+router.post('/register', handleRegister);
+router.post('/signup', handleRegister);
+
+/**
  * POST /api/auth/logout
  * Destroys user session and clears cookie.
  */

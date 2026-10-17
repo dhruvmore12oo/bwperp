@@ -226,6 +226,36 @@ export const mockHandler = {
     return { user: currentMockSessionUser };
   },
 
+  register: async (userData) => {
+    const existing = mockUsers.find(
+      (u) => u.email.toLowerCase() === userData.email.toLowerCase()
+    );
+    if (existing) {
+      const err = new Error('An account with this email address already exists');
+      err.status = 400;
+      throw err;
+    }
+
+    const newUser = {
+      id: Date.now(),
+      name: userData.name,
+      email: userData.email.toLowerCase(),
+      password: userData.password,
+      role: userData.role || 'staff',
+      is_active: true,
+    };
+    mockUsers.push(newUser);
+
+    currentMockSessionUser = {
+      id: newUser.id,
+      name: newUser.name,
+      email: newUser.email,
+      role: newUser.role,
+    };
+
+    return { user: currentMockSessionUser, message: 'Account created successfully' };
+  },
+
   logout: async () => {
     currentMockSessionUser = null;
     return { message: 'Logged out successfully' };
