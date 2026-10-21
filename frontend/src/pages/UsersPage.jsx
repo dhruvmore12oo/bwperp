@@ -49,7 +49,7 @@ export function UsersPage() {
     const nextStatus = !user.is_active;
     try {
       await updateUser(user.id, { is_active: nextStatus });
-      showToast(`User ${user.name} is now ${nextStatus ? 'ACTIVE' : 'DEACTIVATED'}`, 'success');
+      showToast(`User ${user.name} is now ${nextStatus ? 'ACTIVE (Approved)' : 'DEACTIVATED'}`, 'success');
       setUsers((prev) =>
         prev.map((u) => (u.id === user.id ? { ...u, is_active: nextStatus } : u))
       );
@@ -219,7 +219,7 @@ export function UsersPage() {
                         <td>
                           <StatusBadge
                             status={u.is_active ? 'active' : 'inactive'}
-                            label={u.is_active ? 'ACTIVE' : 'DEACTIVATED'}
+                            label={u.is_active ? 'ACTIVE' : 'PENDING / INACTIVE'}
                           />
                         </td>
                         <td style={{ textAlign: 'right' }}>
@@ -229,7 +229,7 @@ export function UsersPage() {
                             disabled={isSelf}
                             title={isSelf ? 'Cannot deactivate active logged-in user' : 'Toggle account status'}
                           >
-                            {u.is_active ? 'Deactivate' : 'Reactivate'}
+                            {u.is_active ? 'Deactivate' : 'Approve & Activate'}
                           </button>
                         </td>
                       </tr>

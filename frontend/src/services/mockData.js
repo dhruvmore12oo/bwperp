@@ -242,18 +242,15 @@ export const mockHandler = {
       email: userData.email.toLowerCase(),
       password: userData.password,
       role: userData.role || 'staff',
-      is_active: true,
+      is_active: false,
     };
     mockUsers.push(newUser);
 
-    currentMockSessionUser = {
-      id: newUser.id,
-      name: newUser.name,
-      email: newUser.email,
-      role: newUser.role,
+    return {
+      pendingApproval: true,
+      user: { id: newUser.id, name: newUser.name, email: newUser.email, role: newUser.role, is_active: false },
+      message: 'Registration submitted successfully. Your account is pending administrator verification.'
     };
-
-    return { user: currentMockSessionUser, message: 'Account created successfully' };
   },
 
   logout: async () => {

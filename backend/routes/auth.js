@@ -35,7 +35,7 @@ router.post('/login', async (req, res) => {
 
     // Check if account is active
     if (!user.is_active) {
-      return res.status(401).json({ error: "Account is inactive" });
+      return res.status(403).json({ error: "Your account is pending administrator approval. Please contact a system administrator to activate your access." });
     }
 
     // Verify password with bcrypt
@@ -105,10 +105,11 @@ const handleRegister = async (req, res) => {
     // Hash password with bcrypt salt rounds = 10
     const password_hash = await bcrypt.hash(password, 10);
 
-    // Insert user record with active status
+    // Insert user record with pending approval status (is_active = false)
+    // Enterprise rule: Self-registered users must be verified by an administrator before activation.
     const insertUserQuery = `
       INSERT INTO users (name, email, password_hash, role_id, is_active)
-      VALUES ($1, $2, $3, $4, true)
+      VALUES ($1, $2, $3, $4, false)
       RETURNING id, name, email, is_active, created_at
     `;
     const insertResult = await db.query(insertUserQuery, [
@@ -120,22 +121,17 @@ const handleRegister = async (req, res) => {
 
     const createdUser = insertResult.rows[0];
 
-    // Auto-login newly registered user by creating session
-    req.session.user = {
-      id: createdUser.id,
-      name: createdUser.name,
-      email: createdUser.email,
-      role: trimmedRole
-    };
-
+    // Note: Do NOT set req.session.user — account requires Admin verification before access
     return res.status(201).json({
+      pendingApproval: true,
       user: {
         id: createdUser.id,
         name: createdUser.name,
         email: createdUser.email,
-        role: trimmedRole
+        role: trimmedRole,
+        is_active: false
       },
-      message: "Account registered successfully"
+      message: "Registration submitted successfully. Your account is pending administrator verification before access is granted."
     });
   } catch (err) {
     console.error('Registration error:', err);

@@ -15,6 +15,10 @@ export function SignUpPage() {
 
   // Wizard Step: 1 (Credentials), 2 (Role & Questions), 3 (Review & Confirmation)
   const [step, setStep] = useState(1);
+  const [registeredPending, setRegisteredPending] = useState(false);
+  const [registeredRole, setRegisteredRole] = useState('');
+  const [registeredName, setRegisteredName] = useState('');
+  const [registeredEmail, setRegisteredEmail] = useState('');
 
   // Form Fields
   const [name, setName] = useState('');
@@ -74,15 +78,23 @@ export function SignUpPage() {
     setSubmitting(true);
 
     try {
-      await register({
+      const res = await register({
         name: name.trim(),
         email: email.trim().toLowerCase(),
         password,
         role,
       });
 
-      showToast(`Welcome to Flowline, ${name.trim()}! Account provisioned.`, 'success');
-      navigate('/', { replace: true });
+      if (res?.pendingApproval) {
+        setRegisteredName(name.trim());
+        setRegisteredEmail(email.trim().toLowerCase());
+        setRegisteredRole(role);
+        setRegisteredPending(true);
+        showToast('Registration submitted! Awaiting administrator approval.', 'success');
+      } else {
+        showToast(`Welcome to Flowline, ${name.trim()}! Account provisioned.`, 'success');
+        navigate('/', { replace: true });
+      }
     } catch (err) {
       const msg = err.message || 'Registration failed. Please check your details.';
       showToast(msg, 'error');
@@ -98,8 +110,112 @@ export function SignUpPage() {
   return (
     <div className="login-container" style={{ padding: '2rem 1rem' }}>
       <div className="login-card" style={{ maxWidth: '580px' }}>
-        {/* Card Header */}
-        <div className="login-header">
+        {registeredPending ? (
+          <div style={{ padding: '1.5rem', textAlign: 'center' }}>
+            <div style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '50%',
+              background: 'rgba(232, 163, 61, 0.15)',
+              border: '2px solid var(--amber)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 1.25rem',
+              color: 'var(--amber)',
+              fontSize: '1.5rem',
+              fontWeight: 'bold'
+            }}>
+              ⏳
+            </div>
+
+            <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: 'var(--ink)' }}>
+              Registration Submitted
+            </h2>
+            <div style={{ display: 'inline-block', marginBottom: '1rem' }}>
+              <span style={{
+                background: 'rgba(232, 163, 61, 0.18)',
+                color: '#8A5600',
+                border: '1px solid var(--amber)',
+                padding: '0.2rem 0.6rem',
+                borderRadius: '4px',
+                fontSize: '0.72rem',
+                fontFamily: 'var(--font-mono)',
+                fontWeight: '700'
+              }}>
+                STATUS: PENDING ADMIN APPROVAL
+              </span>
+            </div>
+
+            <p style={{ color: 'var(--slate)', fontSize: '0.88rem', lineHeight: '1.5', marginBottom: '1.5rem' }}>
+              Hello <strong>{registeredName}</strong>, your employee registration request has been saved in the Brightweld Industries database under the role of <strong style={{ color: 'var(--teal)' }}>{registeredRole.toUpperCase()}</strong>.
+            </p>
+
+            <div style={{
+              background: 'var(--surface-alt)',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-md)',
+              padding: '1rem',
+              textAlign: 'left',
+              marginBottom: '1.5rem',
+              fontSize: '0.82rem'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                <span style={{ color: 'var(--slate)' }}>Corporate Email:</span>
+                <span className="font-mono">{registeredEmail}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                <span style={{ color: 'var(--slate)' }}>Requested Role:</span>
+                <span className="font-mono" style={{ fontWeight: 'bold' }}>{registeredRole.toUpperCase()}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                <span style={{ color: 'var(--slate)' }}>Facility:</span>
+                <span>Brightweld Pune Plant #04</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--slate)' }}>Approval Required By:</span>
+                <span style={{ color: 'var(--teal)', fontWeight: '600' }}>System Administrator</span>
+              </div>
+            </div>
+
+            <div style={{
+              background: 'rgba(14, 110, 110, 0.08)',
+              borderLeft: '3px solid var(--teal)',
+              padding: '0.75rem',
+              borderRadius: 'var(--radius-xs)',
+              fontSize: '0.78rem',
+              color: 'var(--ink)',
+              textAlign: 'left',
+              marginBottom: '1.5rem',
+              lineHeight: '1.4'
+            }}>
+              <strong>Security Rule:</strong> To maintain strict Role-Based Access Control (RBAC), new user accounts cannot log in until an existing administrator activates them from the <em>Users & Roles</em> console.
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+              <Link to="/login" className="btn btn-primary btn-block" style={{ textAlign: 'center' }}>
+                Go to Sign In Page
+              </Link>
+              <button
+                type="button"
+                className="btn btn-ghost btn-block"
+                onClick={() => {
+                  setRegisteredPending(false);
+                  setStep(1);
+                  setName('');
+                  setEmail('');
+                  setPassword('');
+                  setConfirmPassword('');
+                }}
+              >
+                Register Another Account
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Card Header */}
+            <div className="login-header">
           <div className="login-logo-badge">F</div>
           <h1 className="login-title">Brightweld Flowline</h1>
           <p className="login-subtitle">Personnel Onboarding & Access Provisioning</p>
@@ -632,7 +748,7 @@ export function SignUpPage() {
               </div>
 
               <div style={{ background: 'var(--surface-muted)', padding: '0.75rem', borderRadius: 'var(--radius-sm)', marginBottom: '1.25rem', fontSize: '0.78rem', color: 'var(--slate)' }}>
-                <strong>Session Security Notice:</strong> Account will be persisted in PostgreSQL and authenticated with an HTTP-only session cookie.
+                <strong>Enterprise Governance Notice:</strong> Self-registered accounts require verification by a Brightweld System Administrator before access is activated.
               </div>
 
               {/* Action buttons */}
@@ -652,12 +768,14 @@ export function SignUpPage() {
                   style={{ flex: 2 }}
                   disabled={submitting}
                 >
-                  {submitting ? 'Provisioning Account...' : 'Create Account & Sign In'}
+                  {submitting ? 'Submitting Registration...' : 'Submit Registration for Approval'}
                 </button>
               </div>
             </form>
           )}
         </div>
+          </>
+        )}
       </div>
     </div>
   );

@@ -51,6 +51,11 @@ export function AuthProvider({ children }) {
   // Register / Sign-up handler
   const register = async (userData) => {
     const response = await apiRegister(userData);
+    if (response && response.pendingApproval) {
+      // Pending Admin Verification: account created with is_active: false
+      setUser(null);
+      return response;
+    }
     if (response && response.user) {
       setUser(response.user);
       return response.user;
